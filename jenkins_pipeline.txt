@@ -15,7 +15,7 @@ pipeline{
         }
         stage('Checkout from Git'){
             steps{
-                git credentialsId: 'f1447528-919f-41bb-8ee3-0a1778b85f46' , branch: 'main', url: 'https://github.com/DarylAdrien/Netflix-DevSecOps.git'
+                git credentialsId: 'f1447528-919f-41bb-8ee3-0a1778b85f46' , branch: 'main', url: 'https://github.com/faroukrajhi/Netflix-DevSecOps.git'
             }
         }
         stage("Sonarqube Analysis "){
@@ -37,15 +37,15 @@ pipeline{
             steps{
                 script{
                    withDockerRegistry(credentialsId: 'a50c698c-ff32-4319-a393-abc15e71fd75', toolName: 'docker'){   
-                       sh "docker build --build-arg TMDB_V3_API_KEY=2d5c85fe0603ad63040738f88228a14f -t daryladriene/netflix:v${BUILD_NUMBER} ."
-                       sh "docker push daryladriene/netflix:v${BUILD_NUMBER} "
+                       sh "docker build --build-arg TMDB_V3_API_KEY=2d5c85fe0603ad63040738f88228a14f -t faroukrajhi/netflix:v${BUILD_NUMBER} ."
+                       sh "docker push faroukrajhi/netflix:v${BUILD_NUMBER} "
                     }
                 }
             }
         }
         stage("TRIVY"){
             steps{
-                sh "trivy image daryladriene/netflix:latest > trivyimage.txt" 
+                sh "trivy image faroukrajhi/netflix:latest > trivyimage.txt" 
             }
         }
         stage('Update Deployment YAML and Push to GitHub') {
@@ -54,7 +54,7 @@ pipeline{
                     dir('k8s') {
                         // Update the image tag dynamically
                         sh """
-                        sed -i 's|image: daryladriene/netflix:.*|image: daryladriene/netflix:v${BUILD_NUMBER}|' deployment.yml
+                        sed -i 's|image: faroukrajhi/netflix:.*|image: faroukrajhi/netflix:v${BUILD_NUMBER}|' deployment.yml
                         """
         
                         // Configure Git (set your name and email for commit)
@@ -68,7 +68,7 @@ pipeline{
                             sh '''
                             git add deployment.yml
                             git commit -m "Update deployment image to build v${BUILD_NUMBER}"
-                            git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/DarylAdrien/Netflix-DevSecOps.git HEAD:main
+                            git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/faroukrajhi/Netflix-DevSecOps.git HEAD:main
                             '''
                         }
                     }
