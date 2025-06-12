@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Netflix-DevSecOps
 
 <div align="center">
@@ -614,3 +615,7 @@ To deploy an application with ArgoCD, you can follow these steps, which I'll out
 
 1. **Cleanup AWS EC2 Instances:**
     - Terminate AWS EC2 instances that are no longer needed.
+=======
+# netflix_app
+student graduation project
+>>>>>>> d7a594032211ce607b83baf54a1c675bf22f3449
