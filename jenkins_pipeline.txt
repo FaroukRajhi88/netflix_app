@@ -2,7 +2,7 @@ pipeline{
     agent any
     tools{
         jdk 'jdk17'
-        nodejs 'node16'
+        nodejs 'node22'
     }
     environment {
         SCANNER_HOME=tool 'sonar-scanner'
@@ -15,7 +15,7 @@ pipeline{
         }
         stage('Checkout from Git'){
             steps{
-                git credentialsId: 'f1447528-919f-41bb-8ee3-0a1778b85f46' , branch: 'main', url: 'https://github.com/faroukrajhi/Netflix-DevSecOps.git'
+                git credentialsId: 'f1447528-919f-41bb-8ee3-0a1778b85f46' , branch: 'main', url: 'https://github.com/FaroukRajhi88/netflix_app.git'
             }
         }
         stage("Sonarqube Analysis "){
@@ -68,7 +68,7 @@ pipeline{
                             sh '''
                             git add deployment.yml
                             git commit -m "Update deployment image to build v${BUILD_NUMBER}"
-                            git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/faroukrajhi/Netflix-DevSecOps.git HEAD:main
+                            git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/FaroukRajhi88/netflix_app.git HEAD:main
                             '''
                         }
                     }
