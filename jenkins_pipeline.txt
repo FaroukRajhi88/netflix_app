@@ -1,3 +1,4 @@
+
 pipeline{
     agent any
     tools{
@@ -15,7 +16,7 @@ pipeline{
         }
         stage('Checkout from Git'){
             steps{
-                git credentialsId: 'f1447528-919f-41bb-8ee3-0a1778b85f46' , branch: 'main', url: 'https://github.com/FaroukRajhi88/netflix_app.git'
+                git branch: 'main', url: 'https://github.com/FaroukRajhi88/netflix_app.git'
             }
         }
         stage("Sonarqube Analysis "){
@@ -26,55 +27,49 @@ pipeline{
                 }
             }
         }
-        
+        stage("quality gate"){
+           steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token' 
+                }
+            } 
+        }
         stage('Install Dependencies') {
             steps {
                 sh "npm install"
             }
         }
-        
+        stage('OWASP FS SCAN') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        stage('TRIVY FS SCAN') {
+            steps {
+                sh "trivy fs . > trivyfs.txt"
+            }
+        }
         stage("Docker Build & Push"){
             steps{
                 script{
-                   withDockerRegistry(credentialsId: 'a50c698c-ff32-4319-a393-abc15e71fd75', toolName: 'docker'){   
-                       sh "docker build --build-arg TMDB_V3_API_KEY=2d5c85fe0603ad63040738f88228a14f -t faroukrajhi/netflix:v${BUILD_NUMBER} ."
-                       sh "docker push faroukrajhi/netflix:v${BUILD_NUMBER} "
+                   withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
+                       sh "docker build --build-arg TMDB_V3_API_KEY=6c0e88ac0d629d563619bc8d19a312a5 -t netflix ."
+                       sh "docker tag netflix faroukrajhi88/netflix:latest "
+                       sh "docker push faroukrajhi88/netflix:latest "
                     }
                 }
             }
         }
         stage("TRIVY"){
             steps{
-                sh "trivy image faroukrajhi/netflix:latest > trivyimage.txt" 
+                sh "trivy image faroukrajhi88/netflix:latest > trivyimage.txt" 
             }
         }
-        stage('Update Deployment YAML and Push to GitHub') {
-            steps {
-                script {
-                    dir('k8s') {
-                        // Update the image tag dynamically
-                        sh """
-                        sed -i 's|image: faroukrajhi/netflix:.*|image: faroukrajhi/netflix:v${BUILD_NUMBER}|' deployment.yml
-                        """
-        
-                        // Configure Git (set your name and email for commit)
-                        sh '''
-                        git config user.email "jenkins@example.com"
-                        git config user.name "Jenkins"
-                        '''
-        
-                        // Add, commit, and push the changes using GitHub credentials
-                        withCredentials([usernamePassword(credentialsId: 'f1447528-919f-41bb-8ee3-0a1778b85f46', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                            sh '''
-                            git add deployment.yml
-                            git commit -m "Update deployment image to build v${BUILD_NUMBER}"
-                            git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/FaroukRajhi88/netflix_app.git HEAD:main
-                            '''
-                        }
-                    }
-                }
+        stage('Deploy to container'){
+            steps{
+                sh 'docker run -d -p 8081:80 faroukrajhi88/netflix:latest'
             }
         }
-
     }
 }
