@@ -5,7 +5,7 @@ COPY ./yarn.lock .
 RUN yarn install
 COPY . .
 ARG TMDB_V3_API_KEY
-ENV VITE_APP_TMDB_V3_API_KEY=6c0e88ac0d629d563619bc8d19a312a5
+ENV VITE_APP_TMDB_V3_API_KEY=
 ENV VITE_APP_API_ENDPOINT_URL="https://api.themoviedb.org/3"
 RUN yarn build
 
